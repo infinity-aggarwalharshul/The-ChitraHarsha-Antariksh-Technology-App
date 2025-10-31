@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChitraHarsha Antariksh - Pioneering Commercial Space</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/lucide-react@0.395.0/dist/umd/lucide.min.js"></script>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        signInWithCustomToken,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        setLogLevel,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+      // Make Firebase functions globally accessible for inline event handlers
+      window.firebase = {
+        initializeApp,
+        getAuth,
+        signInAnonymously,
+        signInWithCustomToken,
+        onAuthStateChanged,
+        getFirestore,
+        doc,
+        setDoc,
+        setLogLevel,
+      };
+    </script>
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #0a0a1a; /* Dark space blue */
+        color: #e0e0ff;
+      }
+      .header {
+        background-color: rgba(10, 10, 26, 0.8);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(100, 100, 220, 0.3);
+      }
+      .hero {
+        background: linear-gradient(
+            180deg,
+            rgba(10, 10, 26, 0) 0%,
+            #0a0a1a 100%
+          ),
+          url("https://placehold.co/1600x900/0a0a1a/e0e0ff?text=Cosmic+Vista");
+        background-size: cover;
+        background-position: center;
+      }
+      .glow-text {
+        text-shadow: 0 0 8px rgba(173, 216, 230, 0.7),
+          0 0 16px rgba(173, 216, 230, 0.5);
+      }
+      .btn-primary {
+        background: linear-gradient(90deg, #4f46e5, #c026d3);
+        transition: all 0.3s ease;
+        box-shadow: 0 0 15px rgba(192, 38, 211, 0.5);
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 25px rgba(192, 38, 211, 0.8);
+      }
+      .btn-secondary {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(173, 216, 230, 0.5);
+        transition: all 0.3s ease;
+      }
+      .btn-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-color: #ade0e6;
+      }
+      .card {
+        background-color: rgba(20, 20, 40, 0.7);
+        border: 1px solid rgba(100, 100, 220, 0.4);
+        backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+      }
+      .card:hover {
+        border-color: rgba(192, 38, 211, 0.7);
+        transform: translateY(-5px);
+      }
+      .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+      }
+      .modal-content {
+        background-color: #0f0f23;
+        border: 1px solid rgba(100, 100, 220, 0.5);
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      /* Custom scrollbar for modal */
+      .modal-content::-webkit-scrollbar {
+        width: 8px;
+      }
+      .modal-content::-webkit-scrollbar-track {
+        background: #0a0a1a;
+      }
+      .modal-content::-webkit-scrollbar-thumb {
+        background-color: #4f46e5;
+        border-radius: 4px;
+      }
+
+      /* Lightning/Glow Effect */
+      @keyframes subtle-glow {
+        0% {
+          box-shadow: 0 0 5px rgba(173, 216, 230, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 12px rgba(192, 38, 211, 0.4);
+        }
+        100% {
+          box-shadow: 0 0 5px rgba(173, 216, 230, 0.3);
+        }
+      }
+      .animated-border {
+        border: 1px solid transparent;
+        animation: subtle-glow 3s infinite ease-in-out;
+      }
+
+      /* Chatbot bubble */
+      .chatbot-bubble {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: linear-gradient(90deg, #4f46e5, #c026d3);
+        color: white;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 0 20px rgba(192, 38, 211, 0.7);
+        z-index: 999;
+        transition: all 0.3s ease;
+      }
+      .chatbot-bubble:hover {
+        transform: scale(1.1);
+      }
+
+      /* Hide sections by default */
+      .page-section {
+        display: none;
+      }
+      #home {
+        display: block;
+      }
+
+      /* Input styles */
+      .form-input,
+      .form-select {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(100, 100, 220, 0.5);
+        color: #e0e0ff;
+        border-radius: 8px;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        padding: 0.75rem;
+      }
+      .form-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a0a0ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1.25em;
+        padding-right: 2.5rem; /* Make space for the arrow */
+      }
+      .form-input:focus,
+      .form-select:focus {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: #c026d3;
+        outline: none;
+        box-shadow: 0 0 10px rgba(192, 38, 211, 0.5);
+      }
+      /* Fix for select text color in dark mode */
+      .form-select option {
+        background: #0f0f23;
+        color: #e0e0ff;
+      }
+
+      .tab-btn {
+        background-color: transparent;
+        border-bottom: 2px solid transparent;
+        color: #a0a0ff;
+        transition: all 0.3s ease;
+      }
+      .tab-btn.active {
+        color: #e0e0ff;
+        border-bottom-color: #c026d3;
+        font-weight: 600;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Chatbot typing indicator */
+      .typing-indicator {
+        display: flex;
+        align-items: center;
+      }
+      .typing-indicator span {
+        height: 8px;
+        width: 8px;
+        background-color: #a0a0ff;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 2px;
+        animation: bounce 1.4s infinite ease-in-out both;
+      }
+      .typing-indicator span:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .typing-indicator span:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+      @keyframes bounce {
+        0%,
+        80%,
+        100% {
+          transform: scale(0);
+        }
+        40% {
+          transform: scale(1);
+        }
+      }
+
+      /* Styles for modal text content */
+      .modal-text-content {
+        color: rgb(196 181 253);
+        max-height: 70vh;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+      }
+      .modal-text-content p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+      }
+      .modal-text-content h3 {
+        font-size: 1.125rem; /* text-lg */
+        font-weight: 600;
+        color: white;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <!-- Header -->
+    <header class="header sticky top-0 z-50 w-full px-4 sm:px-6 lg:px-8">
+      <div
+        class="container mx-auto max-w-7xl h-16 flex items-center justify-between"
+      >
+        <div class="flex items-center">
+          <i data-lucide="sparkles" class="mr-2 text-purple-400"></i>
+          <span class="text-xl font-bold glow-text"
+            >ChitraHarsha Antariksh</span
+          >
+        </div>
+        <nav class="hidden lg:flex items-center space-x-6">
+          <a
+            href="#home"
+            class="nav-link text-sm font-medium hover:text-purple-300"
+            onclick="showPage('home')"
+            >Home</a
+          >
+          <a
+            href="#rockets"
+            class="nav-link text-sm font-medium hover:text-purple-300"
+            onclick="showPage('rockets')"
+            >Rockets</a
+          >
+          <a
+            href="#satellites"
+            class="nav-link text-sm font-medium hover:text-purple-300"
+            onclick="showPage('satellites')"
+            >Satellites</a
+          >
+          <a
+            href="#telescopes"
+            class="nav-link text-sm font-medium hover:text-purple-300"
+            onclick="showPage('telescopes')"
+            >Telescopes</a
+          >
+          <a
+            href="#governance"
+            class="nav-link text-sm font-medium hover:text-purple-300"
+            onclick="showPage('governance')"
+            >Governance</a
+          >
+          <a
+            href="#careers"
+            class="nav-link text-sm font-medium hover:text-purple-300"
+            onclick="openModal('placementsModal')"
+            >Careers</a
+          >
+          <a
+            href="#blog"
+            class="nav-link text-sm font-medium hover:text-purple-300"
+            onclick="showPage('blog')"
+            >Blog</a
+          >
+          <a
+            href="#currency"
+            class="nav-link text-sm font-medium hover:text-purple-300"
+            onclick="openModal('currencyModal')"
+            >Currency</a
+          >
+        </nav>
+        <div class="flex items-center space-x-4">
+          <button
+            class="btn-secondary text-sm font-medium px-4 py-2 rounded-lg"
+            onclick="openModal('loginModal')"
+          >
+            Login / Sign Up
+          </button>
+          <button class="lg:hidden" onclick="toggleMenu()">
+            <i data-lucide="menu"></i>
+          </button>
+        </div>
+      </div>
+      <!-- Mobile Menu -->
+      <div
+        id="mobile-menu"
+        class="hidden lg:hidden absolute top-16 left-0 w-full bg-[#0f0f23] p-4 space-y-2"
+      >
+        <a
+          href="#home"
+          class="block text-sm font-medium hover:text-purple-300"
+          onclick="showPage('home'); toggleMenu();"
+          >Home</a
+        >
+        <a
+          href="#rockets"
+          class="block text-sm font-medium hover:text-purple-300"
+          onclick="showPage('rockets'); toggleMenu();"
+          >Rockets</a
+        >
+        <a
+          href="#satellites"
+          class="block text-sm font-medium hover:text-purple-300"
+          onclick="showPage('satellites'); toggleMenu();"
+          >Satellites</a
+        >
+        <a
+          href="#telescopes"
+          class="block text-sm font-medium hover:text-purple-300"
+          onclick="showPage('telescopes'); toggleMenu();"
+          >Telescopes</a
+        >
+        <a
+          href="#governance"
+          class="block text-sm font-medium hover:text-purple-300"
+          onclick="showPage('governance'); toggleMenu();"
+          >Governance</a
+        >
+        <a
+          href="#careers"
+          class="block text-sm font-medium hover:text-purple-300"
+          onclick="openModal('placementsModal'); toggleMenu();"
+          >Careers</a
+        >
+        <a
+          href="#blog"
+          class="block text-sm font-medium hover:text-purple-300"
+          onclick="showPage('blog'); toggleMenu();"
+          >Blog</a
+        >
+        <a
+          href="#currency"
+          class="block text-sm font-medium hover:text-purple-300"
+          onclick="openModal('currencyModal'); toggleMenu();"
+          >Currency</a
+        >
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <!-- Home Page -->
+      <div id="home" class="page-section">
+        <!-- Hero Section -->
+        <section
+          class="hero h-[80vh] flex items-center justify-center text-center relative"
+        >
+          <div class="absolute inset-0 bg-black/50"></div>
+          <div class="relative z-10 px-4">
+            <h1 class="text-4xl sm:text-6xl lg:text-7xl font-bold glow-text">
+              The ChitraHarshaVPK Ventures
+            </h1>
+            <p class="mt-4 text-xl sm:text-2xl text-purple-200 font-light">
+              Pioneering India's Commercial Space Future. Made in India, for the
+              World.
+            </p>
+            <div class="mt-8 flex flex-wrap justify-center gap-4">
+              <button
+                class="btn-primary text-lg font-semibold px-8 py-3 rounded-lg"
+                onclick="showPage('rockets')"
+              >
+                Our Rockets
+              </button>
+              <button
+                class="btn-secondary text-lg font-semibold px-8 py-3 rounded-lg"
+                onclick="openModal('loginModal')"
+              >
+                Join Mission
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Core Services Section -->
+        <section class="py-16 sm:py-24">
+          <div class="container mx-auto max-w-7xl px-4">
+            <h2
+              class="text-3xl sm:text-4xl font-bold text-center glow-text mb-12"
+            >
+              Our Core Capabilities
+            </h2>
+            <div class="grid md:grid-cols-3 gap-8">
+              <!-- Rockets Card -->
+              <div class="card rounded-xl p-6 animated-border">
+                <i
+                  data-lucide="rocket"
+                  class="w-12 h-12 text-purple-400 mb-4"
+                ></i>
+                <h3 class="text-2xl font-semibold mb-3">Commercial Rockets</h3>
+                <p class="text-purple-100 mb-4">
+                  Reliable, reusable, and cost-effective launch vehicles for a
+                  new era of space access. Built in India.
+                </p>
+                <a
+                  href="#"
+                  class="font-medium text-purple-300 hover:text-purple-100"
+                  onclick="showPage('rockets')"
+                  >Explore Launchers &rarr;</a
+                >
+              </div>
+              <!-- Satellites Card -->
+              <div class="card rounded-xl p-6 animated-border">
+                <i
+                  data-lucide="satellite"
+                  class="w-12 h-12 text-purple-400 mb-4"
+                ></i>
+                <h3 class="text-2xl font-semibold mb-3">Custom Satellites</h3>
+                <p class="text-purple-100 mb-4">
+                  AI-driven satellite constellations for communication, Earth
+                  observation, and scientific research.
+                </p>
+                <a
+                  href="#"
+                  class="font-medium text-purple-300 hover:text-purple-100"
+                  onclick="showPage('satellites')"
+                  >View Constellations &rarr;</a
+                >
+              </div>
+              <!-- Telescopes Card -->
+              <div class="card rounded-xl p-6 animated-border">
+                <i
+                  data-lucide="telescope"
+                  class="w-12 h-12 text-purple-400 mb-4"
+                ></i>
+                <h3 class="text-2xl font-semibold mb-3">Advanced Telescopes</h3>
+                <p class="text-purple-100 mb-4">
+                  Next-generation space and ground-based telescopes for
+                  commercial and research applications.
+                </p>
+                <a
+                  href="#"
+                  class="font-medium text-purple-300 hover:text-purple-100"
+                  onclick="showPage('telescopes')"
+                  >Discover the Cosmos &rarr;</a
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Technology Section -->
+        <section class="py-16 sm:py-24 bg-black/20">
+          <div class="container mx-auto max-w-7xl px-4 text-center">
+            <h2 class="text-3xl sm:text-4xl font-bold glow-text mb-6">
+              Future-Ready Technology & Compliance
+            </h2>
+            <p class="text-lg text-purple-200 max-w-3xl mx-auto mb-12">
+              Our entire operation is secured by quantum-level encryption and a
+              highly blockchain-managed system, powered by AI-driven mission
+              control, and fully compliant with all government regulations.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 sm:gap-6">
+              <span
+                class="chip bg-purple-900/50 text-purple-200 px-4 py-2 rounded-full border border-purple-700"
+                >AI & LLM Integration</span
+              >
+              <span
+                class="chip bg-purple-900/50 text-purple-200 px-4 py-2 rounded-full border border-purple-700"
+                >Quantum-Level Security</span
+              >
+              <span
+                class="chip bg-purple-900/50 text-purple-200 px-4 py-2 rounded-full border border-purple-700"
+                >Blockchain Management</span
+              >
+              <span
+                class="chip bg-purple-900/50 text-purple-200 px-4 py-2 rounded-full border border-purple-700"
+                >Govt. Rules & Acts Compliant</span
+              >
+              <span
+                class="chip bg-purple-900/50 text-purple-200 px-4 py-2 rounded-full border border-purple-700"
+                >Made in India</span
+              >
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Rockets Page -->
+      <div
+        id="rockets"
+        class="page-section container mx-auto max-w-7xl px-4 py-16"
+      >
+        <h2 class="text-4xl font-bold glow-text mb-8">
+          Launch Services (Rockets)
+        </h2>
+        <p class="text-lg text-purple-200 mb-12">
+          We provide end-to-end launch solutions for commercial and government
+          payloads. Our "Harsha" series of launch vehicles are designed for
+          reliability, reusability, and rapid deployment.
+        </p>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="card rounded-xl overflow-hidden">
+            <img
+              src="https://placehold.co/600x400/1a1a3a/c026d3?text=Harsha-L+(Light+Lift)"
+              alt="Harsha-L Rocket"
+              class="w-full h-64 object-cover"
+            />
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold mb-3">Harsha-L (Light Lift)</h3>
+              <p class="text-purple-100 mb-4">
+                Ideal for small satellites and constellation deployment to LEO.
+                Payload capacity up to 500kg.
+              </p>
+              <button class="btn-secondary px-4 py-2 rounded-lg text-sm">
+                View Specs
+              </button>
+            </div>
+          </div>
+          <div class="card rounded-xl overflow-hidden">
+            <img
+              src="https://placehold.co/600x400/1a1a3a/4f46e5?text=Harsha-H+(Heavy+Lift)"
+              alt="Harsha-H Rocket"
+              class="w-full h-64 object-cover"
+            />
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold mb-3">Harsha-H (Heavy Lift)</h3>
+              <p class="text-purple-100 mb-4">
+                Our flagship reusable rocket for large payloads to GTO, lunar,
+                and interplanetary missions. Payload capacity up to 15,000kg.
+              </p>
+              <button class="btn-secondary px-4 py-2 rounded-lg text-sm">
+                View Specs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Satellites Page -->
+      <div
+        id="satellites"
+        class="page-section container mx-auto max-w-7xl px-4 py-16"
+      >
+        <h2 class="text-4xl font-bold glow-text mb-8">Satellite Solutions</h2>
+        <p class="text-lg text-purple-200 mb-12">
+          From custom-built single satellites to entire AI-managed
+          constellations, our "Chitra" series platforms are adaptable for any
+          mission.
+        </p>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="card rounded-xl overflow-hidden">
+            <img
+              src="https://placehold.co/600x400/1a1a3a/c026d3?text=Chitra-C+(Comms)"
+              alt="Chitra-C Satellite"
+              class="w-full h-64 object-cover"
+            />
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold mb-3">
+                Chitra-C (Communications)
+              </h3>
+              <p class="text-purple-100 mb-4">
+                High-throughput satellite platform for global broadband and
+                secure communication networks.
+              </p>
+              <button class="btn-secondary px-4 py-2 rounded-lg text-sm">
+                View Specs
+              </button>
+            </div>
+          </div>
+          <div class="card rounded-xl overflow-hidden">
+            <img
+              src="https://placehold.co/600x400/1a1a3a/4f46e5?text=Chitra-E+(Earth+Observation)"
+              alt="Chitra-E Satellite"
+              class="w-full h-64 object-cover"
+            />
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold mb-3">
+                Chitra-E (Earth Observation)
+              </h3>
+              <p class="text-purple-100 mb-4">
+                High-resolution optical and radar imaging for agriculture,
+                climate monitoring, and defense.
+              </p>
+              <button class="btn-secondary px-4 py-2 rounded-lg text-sm">
+                View Specs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telescopes Page -->
+      <div
+        id="telescopes"
+        class="page-section container mx-auto max-w-7xl px-4 py-16"
+      >
+        <h2 class="text-4xl font-bold glow-text mb-8">Advanced Telescopes</h2>
+        <p class="text-lg text-purple-200 mb-12">
+          We design, build, and operate next-generation telescopes for
+          commercial space situational awareness and scientific discovery.
+        </p>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="card rounded-xl overflow-hidden">
+            <img
+              src="https://placehold.co/600x400/1a1a3a/c026d3?text=Drishya-S+(Space)"
+              alt="Drishya-S Telescope"
+              class="w-full h-64 object-cover"
+            />
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold mb-3">
+                Drishya-S (Space Telescope)
+              </h3>
+              <p class="text-purple-100 mb-4">
+                A deployable space telescope for exoplanet hunting and
+                deep-space imaging, available for commercial time-share.
+              </p>
+              <button class="btn-secondary px-4 py-2 rounded-lg text-sm">
+                View Specs
+              </button>
+            </div>
+          </div>
+          <div class="card rounded-xl overflow-hidden">
+            <img
+              src="https://placehold.co/600x400/1a1a3a/4f46e5?text=Drishya-G+(Ground)"
+              alt="Drishya-G Telescope"
+              class="w-full h-64 object-cover"
+            />
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold mb-3">
+                Drishya-G (Ground Network)
+              </h3>
+              <p class="text-purple-100 mb-4">
+                An AI-powered network of ground telescopes for tracking
+                satellites, debris, and near-earth objects.
+              </p>
+              <button class="btn-secondary px-4 py-2 rounded-lg text-sm">
+                View Specs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Governance Page -->
+      <div
+        id="governance"
+        class="page-section container mx-auto max-w-7xl px-4 py-16"
+      >
+        <h2 class="text-4xl font-bold glow-text mb-8">
+          Governance, Compliance & Security
+        </h2>
+        <p class="text-lg text-purple-200 mb-12">
+          Our operational framework is built on a foundation of absolute
+          compliance and next-generation security, adhering to all national and
+          international guidelines.
+        </p>
+        <div class="grid md:grid-cols-2 gap-8 text-purple-100">
+          <div class="card p-6">
+            <h3 class="text-xl font-semibold text-white mb-2">
+              Indian Government Acts & Policy
+            </h3>
+            <p>
+              We are fully compliant with the Indian Space Policy 2023, the
+              Information Technology Act, 2000 (and subsequent rules), and all
+              directives from IN-SPACe and ISRO. Our operations are proudly
+              'Made in India' and align with all national strategic goals.
+            </p>
+          </div>
+          <div class="card p-6">
+            <h3 class="text-xl font-semibold text-white mb-2">
+              IN-SPACe Authorization
+            </h3>
+            <p>
+              We work through IN-SPACe (Indian National Space Promotion and
+              Authorization Center) as the single-window agency for all our
+              launch authorizations, technology transfers, and facility sharing,
+              ensuring 100% regulatory adherence.
+            </p>
+          </div>
+          <div class="card p-6">
+            <h3 class="text-xl font-semibold text-white mb-2">
+              Quantum & Blockchain Security
+            </h3>
+            <p>
+              Our entire digital infrastructure is secured with quantum-level
+              high security encryption. All sensitive user and mission data is
+              managed and verified through a highly resilient, private
+              blockchain management system to ensure immutability and trust.
+            </p>
+          </div>
+          <div class="card p-6">
+            <h3 class="text-xl font-semibold text-white mb-2">
+              Digital Threat & Web Compliance
+            </h3>
+            <p>
+              We adhere to all global web standards, including Google's Safe
+              Browsing policies. Our security operations center (SOC) performs
+              24/7 active dark web monitoring, malware analysis, and phishing
+              protection to safeguard our platform and users.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blog Page -->
+      <div
+        id="blog"
+        class="page-section container mx-auto max-w-7xl px-4 py-16"
+      >
+        <h2 class="text-4xl font-bold glow-text mb-12">
+          Mission Updates (Blog)
+        </h2>
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- Blog Post 1 -->
+          <div class="card rounded-xl overflow-hidden">
+            <img
+              src="https://placehold.co/600x400/1a1a3a/c026d3?text=Mission+Janus"
+              alt="Blog Post 1"
+              class="w-full h-48 object-cover"
+            />
+            <div class="p-6">
+              <span class="text-sm text-purple-300">Rockets | 28 Oct 2025</span>
+              <h3 class="text-xl font-semibold my-2">
+                Harsha-H Aces First Reusability Test
+              </h3>
+              <p class="text-purple-100 mb-4 text-sm">
+                A flawless launch and landing for our flagship heavy-lift
+                vehicle, proving our 'Made in India' reusable technology.
+              </p>
+              <a
+                href="#"
+                class="font-medium text-purple-300 hover:text-purple-100 text-sm"
+                onclick="openModal('blogPostModal')"
+                >Read More &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- Blog Post 2 -->
+          <div class="card rounded-xl overflow-hidden">
+            <img
+              src="https://placehold.co/600x400/1a1a3a/4f46e5?text=Chitra-E+Network"
+              alt="Blog Post 2"
+              class="w-full h-48 object-cover"
+            />
+            <div class="p-6">
+              <span class="text-sm text-purple-300"
+                >Satellites | 22 Oct 2025</span
+              >
+              <h3 class="text-xl font-semibold my-2">
+                Chitra-E Constellation Now Live
+              </h3>
+              <p class="text-purple-100 mb-4 text-sm">
+                Our first batch of AI-driven Earth observation satellites are
+                now operational, delivering real-time data.
+              </p>
+              <a
+                href="#"
+                class="font-medium text-purple-300 hover:text-purple-100 text-sm"
+                onclick="openModal('blogPostModal')"
+                >Read More &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- Blog Post 3 -->
+          <div class="card rounded-xl overflow-hidden">
+            <img
+              src="https://placehold.co/600x400/1a1a3a/9333ea?text=Policy+Update"
+              alt="Blog Post 3"
+              class="w-full h-48 object-cover"
+            />
+            <div class="p-6">
+              <span class="text-sm text-purple-300"
+                >Governance | 15 Oct 2025</span
+              >
+              <h3 class="text-xl font-semibold my-2">
+                Our Commitment to Indian Space Policy
+              </h3>
+              <p class="text-purple-100 mb-4 text-sm">
+                How The ChitraHarshaVPK Ventures is aligning with new government
+                policies to boost the private space sector.
+              </p>
+              <a
+                href="#"
+                class="font-medium text-purple-300 hover:text-purple-100 text-sm"
+                onclick="openModal('blogPostModal')"
+                >Read More &rarr;</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-16 bg-black/30 border-t border-purple-900/50">
+      <div class="container mx-auto max-w-7xl px-4">
+        <!-- Get in Touch -->
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+          <div>
+            <h3 class="text-2xl font-semibold glow-text mb-4">Get in Touch</h3>
+            <p class="text-purple-200 mb-4">
+              Have a mission for us? Or want to join our team? We'd love to hear
+              from you.
+            </p>
+            <form class="space-y-4">
+              <input
+                type="email"
+                placeholder="Your Email"
+                class="form-input w-full p-3"
+              />
+              <textarea
+                placeholder="Your Message"
+                class="form-input w-full p-3"
+                rows="4"
+              ></textarea>
+              <button
+                type="submit"
+                class="btn-primary px-6 py-2 rounded-lg font-medium"
+              >
+                Send Message
+              </button>
+            </form>
+          </div>
+          <div>
+            <h3 class="text-2xl font-semibold glow-text mb-4">
+              Follow Our Mission
+            </h3>
+            <p class="text-purple-200 mb-4">
+              Stay updated with our latest launches, discoveries, and career
+              opportunities.
+            </p>
+            <div class="flex space-x-4">
+              <a href="#" class="btn-secondary p-3 rounded-lg"
+                ><i data-lucide="twitter"></i
+              ></a>
+              <a href="#" class="btn-secondary p-3 rounded-lg"
+                ><i data-lucide="linkedin"></i
+              ></a>
+              <a href="#" class="btn-secondary p-3 rounded-lg"
+                ><i data-lucide="youtube"></i
+              ></a>
+              <a href="#" class="btn-secondary p-3 rounded-lg"
+                ><i data-lucide="instagram"></i
+              ></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Footer Links -->
+        <div
+          class="border-t border-purple-900/50 pt-8 flex flex-col md:flex-row justify-between items-center text-sm"
+        >
+          <p class="text-purple-300">
+            &copy; 2025 The ChitraHarshaVPK Ventures Pvt Ltd. All rights
+            reserved.
+          </p>
+          <div class="flex space-x-4 mt-4 md:mt-0">
+            <a href="#" class="hover:text-white" onclick="openModal('faqModal')"
+              >FAQs</a
+            >
+            <a
+              href="#"
+              class="hover:text-white"
+              onclick="openModal('privacyModal')"
+              >Privacy Policy</a
+            >
+            <a
+              href="#"
+              class="hover:text-white"
+              onclick="openModal('termsModal')"
+              >Terms & Conditions</a
+            >
+            <a
+              href="#"
+              class="hover:text-white"
+              onclick="openModal('aboutModal')"
+              >About Us</a
+            >
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Chatbot Bubble -->
+    <div class="chatbot-bubble" onclick="openModal('chatbotModal')">
+      <i data-lucide="message-circle"></i>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- Login/Signup Modal -->
+    <div
+      id="loginModal"
+      class="modal-backdrop fixed inset-0 z-[1000] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('loginModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-4xl rounded-2xl shadow-lg p-8 animated-border"
+      >
+        <button
+          class="absolute top-4 right-4 text-purple-300 hover:text-white"
+          onclick="closeModal('loginModal')"
+        >
+          <i data-lucide="x"></i>
+        </button>
+        <h2 class="text-2xl font-bold glow-text mb-6 text-center">
+          ChitraHarsha Ventures Portal Access
+        </h2>
+
+        <!-- Login Tabs -->
+        <div
+          class="border-b border-purple-800 mb-6 flex flex-wrap justify-center"
+        >
+          <button
+            class="tab-btn p-4 active"
+            onclick="showTab('loginTab', 'newUser')"
+          >
+            New User Registration
+          </button>
+          <button
+            class="tab-btn p-4"
+            onclick="showTab('loginTab', 'companyUser')"
+          >
+            Company Login
+          </button>
+          <button
+            class="tab-btn p-4"
+            onclick="showTab('loginTab', 'contentCreator')"
+          >
+            Creator Login
+          </button>
+          <button class="tab-btn p-4" onclick="showTab('loginTab', 'founder')">
+            Founder/Admin
+          </button>
+          <button
+            class="tab-btn p-4"
+            onclick="showTab('loginTab', 'placements')"
+          >
+            Placements
+          </button>
+        </div>
+
+        <!-- Tab Content: New User Registration -->
+        <div id="newUser" class="tab-content active">
+          <h3 class="text-xl font-semibold mb-4 text-center">
+            Create New User Account
+          </h3>
+          <p class="text-center text-sm text-purple-200 mb-6">
+            Register for mission updates, career alerts, or to become a user of
+            our services.
+          </p>
+          <form
+            id="registrationForm"
+            class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"
+          >
+            <div class="grid md:grid-cols-2 gap-4">
+              <input
+                type="text"
+                id="regUsername"
+                placeholder="Username (Email/Mobile)"
+                class="form-input p-3"
+              />
+              <input
+                type="password"
+                id="regPassword"
+                placeholder="Create Password (8+ chars)"
+                class="form-input p-3"
+              />
+            </div>
+            <input
+              type="text"
+              id="regAddress"
+              placeholder="Address / Street"
+              class="form-input w-full p-3"
+            />
+            <div class="grid md:grid-cols-3 gap-4">
+              <input
+                type="text"
+                id="regCity"
+                placeholder="City"
+                class="form-input p-3"
+              />
+              <input
+                type="text"
+                id="regState"
+                placeholder="State"
+                class="form-input p-3"
+              />
+              <input
+                type="text"
+                id="regPincode"
+                placeholder="Pin code"
+                class="form-input p-3"
+              />
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+              <input
+                type="email"
+                id="regEmail"
+                placeholder="Enter Email ID"
+                class="form-input p-3"
+              />
+              <input
+                type="text"
+                id="regMobile"
+                placeholder="Mobile Number"
+                class="form-input p-3"
+              />
+            </div>
+
+            <!-- Career Application Section -->
+            <div
+              class="p-4 bg-purple-900/30 rounded-lg border border-purple-700"
+            >
+              <h4 class="font-semibold mb-3">Career Application (Optional)</h4>
+              <div class="grid md:grid-cols-2 gap-4">
+                <select id="regDepartment" class="form-select w-full">
+                  <option value="">Select Department</option>
+                  <option value="hr">HR Department</option>
+                  <option value="finance">Finance Department</option>
+                  <option value="ceo">CEO Department</option>
+                  <option value="brainstorming">Brainstorming Sessions</option>
+                  <option value="data_analyst">Data Analyst Department</option>
+                  <option value="data_scientist">
+                    Data Scientist Department
+                  </option>
+                  <option value="research">Research & Development</option>
+                  <option value="shareholders">Shareholders Department</option>
+                  <option value="meetings">Meeting Rooms Department</option>
+                  <option value="cctv">CCTV Monitoring Room</option>
+                  <option value="design">Interior Designer</option>
+                  <option value="transport">Transport Department</option>
+                  <option value="emergency">Emergency Conditions</option>
+                  <option value="cleaning">Cleaning Staff</option>
+                </select>
+                <select id="regLevel" class="form-select w-full">
+                  <option value="">Select Level</option>
+                  <option value="junior">Junior</option>
+                  <option value="senior">Senior</option>
+                  <option value="head">Head</option>
+                </select>
+              </div>
+            </div>
+
+            <div
+              class="p-4 bg-purple-900/30 rounded-lg border border-purple-700"
+            >
+              <h4 class="font-semibold mb-2">Security Verification</h4>
+              <p class="text-sm text-purple-200 mb-4">
+                We use multi-factor authentication for your security.
+              </p>
+              <div class="flex items-center space-x-4">
+                <button
+                  type="button"
+                  class="btn-secondary text-sm px-4 py-2 rounded-lg flex-1"
+                >
+                  Send Email OTP
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary text-sm px-4 py-2 rounded-lg flex-1"
+                >
+                  Setup Passkey
+                </button>
+              </div>
+            </div>
+            <div
+              class="p-4 bg-purple-900/30 rounded-lg border border-purple-700"
+            >
+              <h4 class="font-semibold mb-2">
+                Identification (Optional - for secure services)
+              </h4>
+              <div class="grid md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  id="regAadhaar"
+                  placeholder="Aadhaar Card Number"
+                  class="form-input p-3"
+                />
+                <input
+                  type="text"
+                  id="regPan"
+                  placeholder="PAN CARD Number"
+                  class="form-input p-3"
+                />
+              </div>
+            </div>
+            <div
+              class="p-4 bg-purple-900/30 rounded-lg border border-purple-700"
+            >
+              <h4 class="font-semibold mb-2">
+                Bank Account Details (For Commercial Clients/Employees)
+              </h4>
+              <div class="grid md:grid-cols-3 gap-4">
+                <input
+                  type="text"
+                  id="regAccountNum"
+                  placeholder="Account Number"
+                  class="form-input p-3"
+                />
+                <input
+                  type="text"
+                  id="regBankName"
+                  placeholder="Bank Name"
+                  class="form-input p-3"
+                />
+                <input
+                  type="text"
+                  id="regIfsc"
+                  placeholder="IFSC Code"
+                  class="form-input p-3"
+                />
+              </div>
+            </div>
+            <div class="text-center pt-4">
+              <button
+                type="button"
+                class="btn-primary text-lg font-semibold px-10 py-3 rounded-lg"
+                onclick="registerNewUser()"
+              >
+                Register Account
+              </button>
+            </div>
+            <p class="text-xs text-center text-purple-300">
+              A Virtual ID Card will be generated and linked to our secure cloud
+              database upon verification.
+            </p>
+          </form>
+        </div>
+
+        <!-- Tab Content: Company User -->
+        <div id="companyUser" class="tab-content">
+          <h3 class="text-xl font-semibold mb-6 text-center">
+            Company User Login
+          </h3>
+          <form class="space-y-4 max-w-md mx-auto">
+            <input
+              type="text"
+              placeholder="Username (Email/Mobile)"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="text"
+              placeholder="Virtual ID Card Name"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="text"
+              placeholder="Passkey"
+              class="form-input p-3 w-full"
+            />
+            <button
+              type="submit"
+              class="btn-primary w-full text-lg font-semibold px-8 py-3 rounded-lg"
+            >
+              Login
+            </button>
+          </form>
+        </div>
+
+        <!-- Tab Content: Content Creator -->
+        <div id="contentCreator" class="tab-content">
+          <h3 class="text-xl font-semibold mb-6 text-center">
+            Content Creator Login
+          </h3>
+          <form class="space-y-4 max-w-md mx-auto">
+            <input
+              type="text"
+              placeholder="Username (Email/Mobile)"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="text"
+              placeholder="Passkey"
+              class="form-input p-3 w-full"
+            />
+            <button
+              type="submit"
+              class="btn-primary w-full text-lg font-semibold px-8 py-3 rounded-lg"
+            >
+              Open Creation Interface
+            </button>
+          </form>
+          <div class="text-center my-4 text-purple-300">-- OR --</div>
+          <h4 class="text-center mb-4">Login with Social Platform</h4>
+          <div class="flex justify-center space-x-4">
+            <button class="btn-secondary p-3 rounded-lg">
+              <i data-lucide="youtube"></i>
+            </button>
+            <button class="btn-secondary p-3 rounded-lg">
+              <i data-lucide="instagram"></i>
+            </button>
+            <button class="btn-secondary p-3 rounded-lg">
+              <i data-lucide="facebook"></i>
+            </button>
+            <button class="btn-secondary p-3 rounded-lg">
+              <i data-lucide="twitter"></i>
+            </button>
+            <button class="btn-secondary p-3 rounded-lg">
+              <i data-lucide="linkedin"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab Content: Founder/Admin -->
+        <div id="founder" class="tab-content">
+          <h3 class="text-xl font-semibold mb-6 text-center">
+            Admin / Founder Login (Restricted)
+          </h3>
+          <form class="space-y-4 max-w-md mx-auto">
+            <input
+              type="text"
+              placeholder="Admin Username (Email/Mobile)"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="text"
+              placeholder="Fingerprint Scan (Simulated)"
+              class="form-input p-3 w-full"
+              disabled
+            />
+            <input
+              type="text"
+              placeholder="Passkey"
+              class="form-input p-3 w-full"
+            />
+            <button
+              type="button"
+              class="btn-primary w-full text-lg font-semibold px-8 py-3 rounded-lg"
+              onclick="openModal('adminModal'); closeModal('loginModal')"
+            >
+              Access Dashboard
+            </button>
+          </form>
+        </div>
+
+        <!-- Tab Content: Placements -->
+        <div id="placements" class="tab-content">
+          <h3 class="text-xl font-semibold mb-6 text-center">
+            Placements Head Login
+          </h3>
+          <form class="space-y-4 max-w-md mx-auto">
+            <input
+              type="text"
+              placeholder="Placements Head Email"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="text"
+              placeholder="Virtual Head ID Card Name"
+              class="form-input p-3 w-full"
+            />
+            <input
+              type="text"
+              placeholder="Passkey"
+              class="form-input p-3 w-full"
+            />
+            <button
+              type="button"
+              class="btn-primary w-full text-lg font-semibold px-8 py-3 rounded-lg"
+              onclick="openModal('placementsModal'); closeModal('loginModal')"
+            >
+              Open Interview Portal
+            </button>
+          </form>
+        </div>
+
+        <!-- Guest Mode & Download -->
+        <div class="text-center mt-8 border-t border-purple-800 pt-6">
+          <button
+            class="btn-secondary text-sm px-6 py-2 rounded-lg"
+            onclick="showMessage('Guest Mode', 'Guest Mode activated. Features are limited.')"
+          >
+            Continue as Guest
+          </button>
+          <button
+            class="btn-secondary text-sm px-6 py-2 rounded-lg ml-4"
+            onclick="openModal('downloadModal')"
+          >
+            Download Client
+          </button>
+          <button
+            class="btn-primary text-sm px-6 py-2 rounded-lg ml-4"
+            onclick="openModal('paymentModal')"
+          >
+            Select Plan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin/Founder Modal -->
+    <div
+      id="adminModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('adminModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-5xl rounded-2xl shadow-lg p-8 animated-border"
+      >
+        <button
+          class="absolute top-4 right-4 text-purple-300 hover:text-white"
+          onclick="closeModal('adminModal')"
+        >
+          <i data-lucide="x"></i>
+        </button>
+        <h2 class="text-2xl font-bold glow-text mb-6">
+          Founder Dashboard (Restricted)
+        </h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Total Employees & Budget -->
+          <div class="card p-6">
+            <h3 class="text-xl font-semibold mb-4">
+              Total Employees and Budget (Live)
+            </h3>
+            <div class="space-y-2 text-purple-100">
+              <p><strong>Total Employees:</strong> 330</p>
+              <p><strong>Monthly Budget:</strong> Rs. 2.26 Crore</p>
+              <p><strong>Annual Budget:</strong> Rs. 27.12 Crore</p>
+              <p class="text-xs text-purple-300">
+                (Auto-updated from user database)
+              </p>
+            </div>
+          </div>
+          <!-- Salary Automation -->
+          <div class="card p-6">
+            <h3 class="text-xl font-semibold mb-4">
+              Automated Salary Transaction
+            </h3>
+            <p class="text-purple-200 mb-4">
+              Enable AI-powered automated monthly salary payments via
+              ChitraHarshaVPK Pay.
+            </p>
+            <div class="flex space-x-4">
+              <button class="btn-primary px-6 py-2 rounded-lg">
+                Yes, Automate
+              </button>
+              <button class="btn-secondary px-6 py-2 rounded-lg">
+                No, Manual
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Department Salaries -->
+        <div class="mt-6 card p-6">
+          <h3 class="text-xl font-semibold mb-4">
+            Various Departments Salary Details
+          </h3>
+          <div
+            class="max-h-[40vh] overflow-y-auto pr-2 text-sm text-purple-100 space-y-3"
+          >
+            <p><strong>HR (39):</strong> 23 Lakh (Monthly)</p>
+            <p><strong>Finance (39):</strong> 23 Lakh (Monthly)</p>
+            <p><strong>CEO (3):</strong> 3 Lakh (Monthly)</p>
+            <p><strong>Brainstormers (39):</strong> 23 Lakh (Monthly)</p>
+            <p><strong>Data Analysts (39):</strong> 23 Lakh (Monthly)</p>
+            <p><strong>Data Scientists (39):</strong> 23 Lakh (Monthly)</p>
+            <p><strong>Researchers (39):</strong> 23 Lakh (Monthly)</p>
+            <p><strong>Shareholders (13):</strong> 13 Lakh (Monthly)</p>
+            <p><strong>CCTV (5):</strong> 4 Lakh (Monthly)</p>
+            <!-- ... other departments ... -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Placements Modal -->
+    <div
+      id="placementsModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('placementsModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-3xl rounded-2xl shadow-lg p-8 animated-border"
+      >
+        <button
+          class="absolute top-4 right-4 text-purple-300 hover:text-white"
+          onclick="closeModal('placementsModal')"
+        >
+          <i data-lucide="x"></i>
+        </button>
+        <h2 class="text-2xl font-bold glow-text mb-6">
+          Placements Portal - Virtual Interviews
+        </h2>
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-purple-200">Interview Time Duration:</p>
+          <select class="form-select p-2">
+            <option>Set Duration (5-25 mins)</option>
+            <option>5 mins</option>
+            <option>15 mins</option>
+            <option>25 mins</option>
+          </select>
+        </div>
+        <!-- Interview List -->
+        <div class="space-y-4 max-h-[60vh] overflow-y-auto">
+          <div class="card p-4 flex justify-between items-center">
+            <div>
+              <h4 class="font-semibold text-white">Aarav Sharma</h4>
+              <p class="text-sm text-purple-200">
+                Applying for: Rocket Propulsion Engineer (Junior)
+              </p>
+            </div>
+            <button class="btn-primary px-4 py-2 rounded-lg text-sm">
+              Start Virtual Interview
+            </button>
+          </div>
+          <div class="card p-4 flex justify-between items-center">
+            <div>
+              <h4 class="font-semibold text-white">Priya Patel</h4>
+              <p class="text-sm text-purple-200">
+                Applying for: Data Scientist (Senior)
+              </p>
+            </div>
+            <button class="btn-primary px-4 py-2 rounded-lg text-sm">
+              Start Virtual Interview
+            </button>
+          </div>
+          <div class="card p-4 flex justify-between items-center">
+            <div>
+              <h4 class="font-semibold text-white">Rohan Gupta</h4>
+              <p class="text-sm text-purple-200">
+                Applying for: Finance (Head)
+              </p>
+            </div>
+            <button class="btn-primary px-4 py-2 rounded-lg text-sm">
+              Start Virtual Interview
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div
+      id="paymentModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('paymentModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-md rounded-2xl shadow-lg p-8 animated-border text-center"
+      >
+        <button
+          class="absolute top-4 right-4 text-purple-300 hover:text-white"
+          onclick="closeModal('paymentModal')"
+        >
+          <i data-lucide="x"></i>
+        </button>
+        <h2 class="text-2xl font-bold glow-text mb-6">Select Payment Method</h2>
+        <p class="text-purple-200 mb-8">
+          Choose your preferred method to complete the transaction.
+        </p>
+        <div class="space-y-4">
+          <button
+            class="btn-primary w-full p-4 rounded-lg text-lg font-semibold flex items-center justify-center"
+          >
+            <i data-lucide="aperture" class="mr-2"></i> ChitraHarshaVPK Pay
+          </button>
+          <button
+            class="btn-secondary w-full p-4 rounded-lg text-lg font-semibold flex items-center justify-center"
+          >
+            <i data-lucide="bitcoin" class="mr-2"></i> CHC Cryptocurrency
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Download Client Modal -->
+    <div
+      id="downloadModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('downloadModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-md rounded-2xl shadow-lg p-8 animated-border text-center"
+      >
+        <button
+          class="absolute top-4 right-4 text-purple-300 hover:text-white"
+          onclick="closeModal('downloadModal')"
+        >
+          <i data-lucide="x"></i>
+        </button>
+        <h2 class="text-2xl font-bold glow-text mb-6">
+          Download Secure Client
+        </h2>
+        <p class="text-purple-200 mb-8">
+          Requires active premium plan. Client includes safe browsing, dark web
+          monitoring, and secure access to our 10T SQL database.
+        </p>
+        <div class="space-y-4 text-left">
+          <label class="flex items-center p-4 card rounded-lg cursor-pointer">
+            <input
+              type="radio"
+              name="downloadOS"
+              class="form-radio h-5 w-5 text-purple-400 bg-transparent border-purple-400 mr-4"
+            />
+            <span>Download for Windows</span>
+          </label>
+          <label class="flex items-center p-4 card rounded-lg cursor-pointer">
+            <input
+              type="radio"
+              name="downloadOS"
+              class="form-radio h-5 w-5 text-purple-400 bg-transparent border-purple-400 mr-4"
+            />
+            <span>Download for macOS</span>
+          </label>
+          <label class="flex items-center p-4 card rounded-lg cursor-pointer">
+            <input
+              type="radio"
+              name="downloadOS"
+              class="form-radio h-5 w-5 text-purple-400 bg-transparent border-purple-400 mr-4"
+            />
+            <span>Download for Linux</span>
+          </label>
+        </div>
+        <button
+          class="btn-primary w-full p-3 rounded-lg text-lg font-semibold mt-8"
+        >
+          Download Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Chatbot Modal -->
+    <div
+      id="chatbotModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('chatbotModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-md rounded-2xl shadow-lg animated-border h-[70vh] flex flex-col"
+      >
+        <div
+          class="p-4 border-b border-purple-800 flex justify-between items-center"
+        >
+          <h2 class="text-xl font-bold glow-text">
+            Mission AI Assistant (Live)
+          </h2>
+          <button
+            class="text-purple-300 hover:text-white"
+            onclick="closeModal('chatbotModal')"
+          >
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div id="chat-window" class="flex-1 p-4 space-y-4 overflow-y-auto">
+          <div class="chat-bubble-ai p-3 rounded-lg bg-purple-900/50 max-w-xs">
+            <p class="text-sm">
+              Hello! I am your AI assistant, powered by ChitraHarsha's
+              proprietary LLM (Gemini 2.5 Flash). How can I help you with our
+              rocket, satellite, or telescope services today?
+            </p>
+          </div>
+          <!-- Chat messages will be appended here by JS -->
+        </div>
+        <div class="p-4 border-t border-purple-800">
+          <div class="flex space-x-2">
+            <input
+              type="text"
+              id="chat-input"
+              placeholder="Type your message..."
+              class="form-input flex-1 p-3"
+              onkeydown="if(event.key === 'Enter') sendChatMessage();"
+            />
+            <button
+              class="btn-primary px-4 py-3 rounded-lg"
+              onclick="sendChatMessage()"
+            >
+              <i data-lucide="send"></i>
+            </button>
+            <button class="btn-secondary px-4 py-3 rounded-lg">
+              <i data-lucide="scan"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Currency Conversion Modal -->
+    <div
+      id="currencyModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('currencyModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-md rounded-2xl shadow-lg p-8 animated-border"
+      >
+        <button
+          class="absolute top-4 right-4 text-purple-300 hover:text-white"
+          onclick="closeModal('currencyModal')"
+        >
+          <i data-lucide="x"></i>
+        </button>
+        <h2 class="text-2xl font-bold glow-text mb-6 text-center">
+          Live Currency Conversion
+        </h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-purple-200 mb-1"
+              >From</label
+            >
+            <div class="flex space-x-2">
+              <input
+                type="number"
+                id="fromAmount"
+                class="form-input w-2/3 p-3"
+                placeholder="100.00"
+              />
+              <select id="fromCurrency" class="form-select w-1/3">
+                <option>INR</option>
+                <option>USD</option>
+                <option>CHC</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-center">
+            <button
+              class="btn-secondary p-2 rounded-full"
+              onclick="swapCurrencies()"
+            >
+              <i data-lucide="repeat"></i>
+            </button>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-purple-200 mb-1"
+              >To</label
+            >
+            <div class="flex space-x-2">
+              <input
+                type="text"
+                id="toAmount"
+                class="form-input w-2/3 p-3"
+                placeholder="Result..."
+                readonly
+              />
+              <select id="toCurrency" class="form-select w-1/3">
+                <option>USD</option>
+                <option>INR</option>
+                <option>CHC</option>
+              </select>
+            </div>
+          </div>
+          <div class="text-center text-purple-300 text-sm pt-2">
+            <p><strong>Live Tracking Rate (Simulated):</strong></p>
+            <p>1 CHC (ChitraHarsha Coin) = $152.45 USD</p>
+            <p>1 USD = ₹83.50 INR</p>
+          </div>
+          <button
+            class="btn-primary w-full p-3 rounded-lg text-lg font-semibold mt-4"
+            onclick="convertCurrency()"
+          >
+            Convert
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generic Content Modals (FAQs, Privacy, Terms, About, Blog) -->
+
+    <!-- FAQ Modal -->
+    <div
+      id="faqModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('faqModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-3xl rounded-2xl shadow-lg p-8 animated-border"
+      >
+        <h2 class="text-2xl font-bold glow-text mb-6">
+          Frequently Asked Questions
+        </h2>
+        <div class_id="faq-content" class="modal-text-content text-purple-100">
+          <div class="card p-4">
+            <h3 class="font-semibold text-white">
+              1. Are your services available globally?
+            </h3>
+            <p>
+              Yes, The ChitraHarshaVPK Ventures provides commercial launch and
+              satellite services to clients worldwide, in full compliance with
+              all international treaties and regulations.
+            </p>
+          </div>
+          <div class="card p-4">
+            <h3 class="font-semibold text-white">
+              2. How do you ensure data and platform security?
+            </h3>
+            <p>
+              Our security is paramount. We utilize a proprietary stack
+              including quantum-level high security encryption, a private
+              blockchain management system for data integrity, active 24/7 dark
+              web monitoring, and real-time malware and phishing protection. Our
+              systems are built to exceed commercial-grade security standards.
+            </p>
+          </div>
+          <div class="card p-4">
+            <h3 class="font-semibold text-white">
+              3. What does "full government compliance" mean?
+            </h3>
+            <p>
+              It means we adhere to 100% of all applicable laws, acts, and
+              guidelines. This includes the Indian Space Policy, the IT Act, and
+              all directives from regulatory bodies like IN-SPACe. Our
+              operations are fully transparent and auditable by government
+              authorities as required.
+            </p>
+          </div>
+          <div class="card p-4">
+            <h3 class="font-semibold text-white">
+              4. How do you integrate AI and NLP?
+            </h3>
+            <p>
+              AI and NLP are at the core of our operations. Our mission control,
+              satellite constellation management, and this very AI assistant are
+              powered by the latest AI models. We use NLP for real-time
+              telemetry analysis, automated threat detection, and advanced
+              client support.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div
+      id="privacyModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('privacyModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-3xl rounded-2xl shadow-lg p-8 animated-border"
+      >
+        <h2 class="text-2xl font-bold glow-text mb-6">Privacy Policy</h2>
+        <div
+          class_id="privacy-content"
+          class="modal-text-content text-purple-100"
+        >
+          <h3>Our Commitment to Your Privacy</h3>
+          <p>
+            Your privacy is a non-negotiable priority at The ChitraHarshaVPK
+            Ventures. Our policy is built on the principles of security,
+            transparency, and compliance with all government regulations.
+          </p>
+
+          <h3>Data Collection and Usage</h3>
+          <p>
+            We are thoughtful about the personal information we ask you to
+            provide and collect. We store personal information only for as long
+            as we have a legitimate business or legal reason to keep it. All
+            data is stored in our secure, government-compliant cloud database,
+            managed via a highly blockchain-secured system.
+          </p>
+
+          <h3>Unmatched Data Security</h3>
+          <p>
+            All user data, from registration to mission-critical telemetry, is
+            protected by quantum-level high security encryption, both in transit
+            and at rest. We actively employ dark web monitoring for credential
+            leaks and maintain robust malware and phishing protections across
+            our platform.
+          </p>
+
+          <h3>Transparency and Compliance</h3>
+          <p>
+            We aim for full transparency on how we gather, use, and share your
+            personal information. We do not sell your data. Our practices are
+            fully compliant with all Indian government acts and guidelines,
+            including the Information Technology Act, 2000, and its rules, as
+            well as global standards like GDPR.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terms & Conditions Modal -->
+    <div
+      id="termsModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('termsModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-3xl rounded-2xl shadow-lg p-8 animated-border"
+      >
+        <h2 class="text-2xl font-bold glow-text mb-6">Terms & Conditions</h2>
+        <div
+          class_id="terms-content"
+          class="modal-text-content text-purple-100"
+        >
+          <h3>1. Agreement to Terms</h3>
+          <p>
+            By accessing or using any part of our web app or services, you agree
+            to be bound by these Terms & Conditions. If you do not agree to all
+            terms, you may not access the app. These terms are governed by the
+            laws and acts of the Republic of India.
+          </p>
+
+          <h3>2. Account Security</h3>
+          <p>
+            You are responsible for maintaining the security of your account,
+            password, and passkeys. User accounts, including Virtual ID Cards,
+            are non-transferable. You must notify us immediately of any breach
+            of security. All activity under your account is your responsibility.
+          </p>
+
+          <h3>3. Use of Services</h3>
+          <p>
+            Use of our commercial services (launch, satellite, or data) is
+            subject to a separate Master Services Agreement (MSA). All use of
+            this platform must comply with all applicable national and
+            international laws, regulations, and government guidelines.
+          </p>
+
+          <h3>4. Intellectual Property</h3>
+          <p>
+            All intellectual property related to our rocket, satellite, and
+            telescope designs, as well as our proprietary AI models, source
+            code, and blockchain architecture, is the exclusive property of The
+            ChitraHarshaVPK Ventures Pvt Ltd.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Us Modal -->
+    <div
+      id="aboutModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('aboutModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-3xl rounded-2xl shadow-lg p-8 animated-border"
+      >
+        <h2 class="text-2xl font-bold glow-text mb-6">About Us</h2>
+        <div
+          class_id="about-content"
+          class="modal-text-content text-purple-100"
+        >
+          <p>
+            The ChitraHarshaVPK Ventures Pvt Ltd (trading as ChitraHarsha
+            Antariksh) is India's premier private space corporation. Founded on
+            the principles of innovation, self-reliance, and futuristic vision,
+            we are dedicated to making space accessible for commercial and
+            scientific endeavors.
+          </p>
+
+          <p>
+            Our name, combining 'Chitra' (Picture, Art) and 'Harsha' (Joy,
+            Exultation) with 'Antariksh' (Space), reflects our mission to
+            joyfully paint a new picture of humanity's future in the cosmos.
+          </p>
+
+          <p>
+            We are a 'Made in India' company, fully aligned with all Indian
+            Government rules, regulations, and acts, including the Indian Space
+            Policy. We work hand-in-hand with national agencies like IN-SPACe to
+            build a robust, secure, and commercially viable space ecosystem.
+          </p>
+
+          <p>
+            Our operations are secured by a proprietary, defense-grade
+            technology stack, including quantum-level high security, a highly
+            blockchain-managed system for data integrity, and advanced AI/NLP
+            modules for mission-critical operations. We are not just a space
+            company; we are a technology corporation building the secure
+            infrastructure for the next generation of space exploration.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blog Post Modal -->
+    <div
+      id="blogPostModal"
+      class="modal-backdrop fixed inset-0 z-[1001] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('blogPostModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-3xl rounded-2xl shadow-lg animated-border"
+      >
+        <img
+          src="https://placehold.co/800x400/1a1a3a/c026d3?text=Mission+Janus"
+          alt="Blog Post 1"
+          class="w-full h-64 object-cover rounded-t-xl"
+        />
+        <div class="p-8">
+          <h2 class="text-2xl font-bold glow-text mb-4">
+            Harsha-H Aces First Reusability Test
+          </h2>
+          <span class="text-sm text-purple-300">Rockets | 28 Oct 2025</span>
+          <div
+            class_id="blog-content"
+            class="modal-text-content text-purple-100 mt-6"
+          >
+            <p>
+              Today marks a monumental step for The ChitraHarshaVPK Ventures and
+              the 'Made in India' space program. At 09:30 IST, our flagship
+              Harsha-H heavy-lift vehicle successfully launched a 10-tonne dummy
+              payload to a target orbit.
+            </p>
+            <p>
+              But the primary mission was just beginning. The first stage
+              booster, powered by nine of our proprietary 'Vikrant' methalox
+              engines, performed a flawless boost-back burn and atmospheric
+              re-entry, touching down precisely on our autonomous droneship,
+              'Atal'.
+            </p>
+            <p>
+              This achievement validates our AI-driven flight control and
+              rapid-reusability architecture, paving the way for a dramatic
+              reduction in launch costs for our commercial clients. Our
+              quantum-secured network provided real-time telemetry throughout
+              the entire flight, encrypted and managed via our internal
+              blockchain.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generic Message Modal (replaces alert()) -->
+    <div
+      id="messageModal"
+      class="modal-backdrop fixed inset-0 z-[1002] flex items-center justify-center p-4 hidden"
+      onclick="closeModal('messageModal', event)"
+    >
+      <div
+        class="modal-content w-full max-w-sm rounded-2xl shadow-lg p-8 animated-border text-center"
+      >
+        <h2 id="messageTitle" class="text-xl font-bold glow-text mb-4">
+          Message
+        </h2>
+        <p id="messageText" class="text-purple-100 mb-6">This is a message.</p>
+        <button
+          class="btn-primary px-6 py-2 rounded-lg"
+          onclick="closeModal('messageModal')"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+
+    <script>
+      lucide.createIcons();
+
+      // --- Global Firebase & App Variables ---
+      let db, auth, appId, userId;
+
+      // --- Core Modal & Page Controls ---
+      function openModal(modalId) {
+        document.getElementById(modalId).classList.remove("hidden");
+      }
+
+      function closeModal(modalId, event) {
+        if (event && event.target.id !== modalId) return;
+        document.getElementById(modalId).classList.add("hidden");
+      }
+
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.add("hidden");
+      }
+
+      function showMessage(title, message) {
+        document.getElementById("messageTitle").innerText = title;
+        document.getElementById("messageText").innerText = message;
+        openModal("messageModal");
+      }
+
+      function showTab(tabContainerId, tabId) {
+        const buttons = document
+          .querySelectorAll(`#${tabId.toLowerCase()}`)
+          .parentElement.querySelectorAll(".tab-btn");
+        buttons.forEach((btn) => btn.classList.remove("active"));
+        const contents = document
+          .querySelectorAll(`#${tabId.toLowerCase()}`)
+          .parentElement.parentElement.querySelectorAll(".tab-content");
+        contents.forEach((content) => content.classList.remove("active"));
+        document
+          .querySelector(`.tab-btn[onclick*="'${tabId}'"]`)
+          .classList.add("active");
+        document.getElementById(tabId).classList.add("active");
+      }
+
+      function showPage(pageId) {
+        document
+          .querySelectorAll(".page-section")
+          .forEach((page) => (page.style.display = "none"));
+        document.getElementById(pageId).style.display = "block";
+        window.scrollTo(0, 0);
+        document.querySelectorAll(".nav-link").forEach((link) => {
+          link.classList.remove("text-purple-300", "font-bold");
+          if (link.getAttribute("href") === `#${pageId}`) {
+            link.classList.add("text-purple-300", "font-bold");
+          }
+        });
+      }
+
+      function toggleMenu() {
+        document.getElementById("mobile-menu").classList.toggle("hidden");
+      }
+
+      // --- Currency Conversion Logic ---
+      const simulatedRates = {
+        USD: { INR: 83.5, CHC: 0.00656 },
+        INR: { USD: 0.012, CHC: 0.000078 },
+        CHC: { USD: 152.45, INR: 12729.68 },
+      };
+
+      function convertCurrency() {
+        const fromAmount = parseFloat(
+          document.getElementById("fromAmount").value
+        );
+        const fromCurrency = document.getElementById("fromCurrency").value;
+        const toCurrency = document.getElementById("toCurrency").value;
+        const toAmountInput = document.getElementById("toAmount");
+        if (isNaN(fromAmount)) {
+          toAmountInput.value = "Invalid Amount";
+          return;
+        }
+        if (fromCurrency === toCurrency) {
+          toAmountInput.value = fromAmount.toFixed(2);
+          return;
+        }
+        const rate = simulatedRates[fromCurrency][toCurrency];
+        const result = fromAmount * rate;
+        toAmountInput.value = result.toFixed(2);
+      }
+
+      function swapCurrencies() {
+        const fromCurrency = document.getElementById("fromCurrency");
+        const toCurrency = document.getElementById("toCurrency");
+        const fromAmount = document.getElementById("fromAmount");
+        const toAmount = document.getElementById("toAmount");
+        const tempCurrency = fromCurrency.value;
+        fromCurrency.value = toCurrency.value;
+        toCurrency.value = tempCurrency;
+        const tempAmount = fromAmount.value;
+        fromAmount.value = toAmount.value;
+        toAmount.value = tempAmount;
+        if (fromAmount.value) convertCurrency();
+      }
+
+      // --- Firebase Initialization & Auth ---
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof __firebase_config === "undefined") {
+          console.error("Firebase config not found.");
+          showMessage(
+            "Config Error",
+            "Firebase configuration is missing. Backend features will be disabled."
+          );
+          return;
+        }
+
+        try {
+          const firebaseConfig = JSON.parse(__firebase_config);
+          appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+
+          // Use globally scoped functions from window.firebase
+          const {
+            initializeApp,
+            getAuth,
+            onAuthStateChanged,
+            getFirestore,
+            setLogLevel,
+          } = window.firebase;
+
+          const app = initializeApp(firebaseConfig);
+          db = getFirestore(app);
+          auth = getAuth(app);
+
+          // Enable debug logging for Firestore
+          setLogLevel("Debug");
+
+          onAuthStateChanged(auth, (user) => {
+            if (user) {
+              userId = user.uid;
+              console.log("User is authenticated. UID:", userId);
+            } else {
+              console.log("User is not authenticated.");
+              userId = null;
+            }
+          });
+
+          authenticateUser();
+        } catch (error) {
+          console.error("Firebase initialization error:", error);
+          showMessage(
+            "Init Error",
+            `Failed to initialize Firebase: ${error.message}`
+          );
+        }
+      });
+
+      async function authenticateUser() {
+        try {
+          const { signInWithCustomToken, signInAnonymously } = window.firebase;
+          if (
+            typeof __initial_auth_token !== "undefined" &&
+            __initial_auth_token
+          ) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
+        } catch (error) {
+          console.error("Authentication error:", error);
+          try {
+            await window.firebase.signInAnonymously(auth);
+          } catch (anonError) {
+            console.error("Anonymous sign-in also failed:", anonError);
+            showMessage(
+              "Auth Error",
+              "Failed to authenticate. Please refresh the page."
+            );
+          }
+        }
+      }
+
+      // --- Firebase Registration Logic ---
+      async function registerNewUser() {
+        if (!auth || !auth.currentUser) {
+          showMessage(
+            "Error",
+            "Authentication not ready. Please wait a moment and try again."
+          );
+          return;
+        }
+
+        const currentUserId = auth.currentUser.uid;
+
+        try {
+          const userData = {
+            username: document.getElementById("regUsername").value,
+            address: document.getElementById("regAddress").value,
+            city: document.getElementById("regCity").value,
+            state: document.getElementById("regState").value,
+            pincode: document.getElementById("regPincode").value,
+            email: document.getElementById("regEmail").value,
+            mobile: document.getElementById("regMobile").value,
+            aadhaar: document.getElementById("regAadhaar").value,
+            pan: document.getElementById("regPan").value,
+            bank: {
+              accountNumber: document.getElementById("regAccountNum").value,
+              bankName: document.getElementById("regBankName").value,
+              ifsc: document.getElementById("regIfsc").value,
+            },
+            careerApplication: {
+              department: document.getElementById("regDepartment").value,
+              level: document.getElementById("regLevel").value,
+            },
+            createdAt: new Date().toISOString(),
+          };
+
+          // Use globally scoped Firestore functions
+          const { doc, setDoc } = window.firebase;
+
+          // Define the doc path according to private user data rules
+          const userDocRef = doc(
+            db,
+            "artifacts",
+            appId,
+            "users",
+            currentUserId,
+            "profile",
+            "data"
+          );
+
+          // Save the data to Firestore
+          await setDoc(userDocRef, userData);
+
+          console.log("User data saved successfully!");
+          showMessage(
+            "Registration Successful",
+            "Your account has been created and data saved to our secure cloud database."
+          );
+          closeModal("loginModal");
+        } catch (error) {
+          console.error("Failed to register user or save data:", error);
+          showMessage(
+            "Registration Error",
+            `An error occurred: ${error.message}`
+          );
+        }
+      }
+
+      // --- Gemini AI Chatbot Logic ---
+      const chatHistory = [];
+
+      function appendMessage(sender, message) {
+        const chatWindow = document.getElementById("chat-window");
+        const messageDiv = document.createElement("div");
+
+        if (sender === "user") {
+          messageDiv.className = "chat-bubble-user flex justify-end";
+          messageDiv.innerHTML = `<p class="p-3 rounded-lg bg-blue-800/50 max-w-xs text-sm">${message}</p>`;
+        } else if (sender === "ai") {
+          messageDiv.className = "chat-bubble-ai";
+          messageDiv.innerHTML = `<p class="p-3 rounded-lg bg-purple-900/50 max-w-xs text-sm">${message}</p>`;
+        } else {
+          // Typing indicator
+          messageDiv.id = "typing-indicator";
+          messageDiv.className = "chat-bubble-ai typing-indicator p-3";
+          messageDiv.innerHTML = "<span></span><span></span><span></span>";
+        }
+
+        chatWindow.appendChild(messageDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight; // Auto-scroll to bottom
+      }
+
+      async function sendChatMessage() {
+        const input = document.getElementById("chat-input");
+        const userMessage = input.value.trim();
+        if (!userMessage) return;
+
+        appendMessage("user", userMessage);
+        input.value = "";
+
+        appendMessage("typing", ""); // Show typing indicator
+
+        try {
+          const aiResponse = await callGeminiAPI(userMessage);
+          document.getElementById("typing-indicator")?.remove(); // Remove typing indicator
+          appendMessage("ai", aiResponse);
+        } catch (error) {
+          console.error("Gemini API Error:", error);
+          document.getElementById("typing-indicator")?.remove();
+          appendMessage(
+            "ai",
+            "Sorry, I'm having trouble connecting to my AI core. Please try again later."
+          );
+        }
+      }
+
+      async function callGeminiAPI(prompt, retries = 3) {
+        const apiKey = ""; // API key is handled by the environment
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+        const systemPrompt =
+          "You are a world-class AI assistant for ChitraHarsha Antariksh, India's premier private space company. Your name is 'Mission AI'. You are helpful, polite, and knowledgeable about rockets, satellites, telescopes, AI, and blockchain. You are 'Made in India'. You must mention the company's commitment to quantum security, blockchain, and government compliance when relevant. Keep your answers concise (2-4 sentences) and relevant to the company's focus.";
+
+        // Add user prompt to history
+        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+        const payload = {
+          contents: chatHistory, // Send the conversation history
+          systemInstruction: {
+            parts: [{ text: systemPrompt }],
+          },
+        };
+
+        for (let i = 0; i < retries; i++) {
+          try {
+            const response = await fetch(apiUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (
+              result.candidates &&
+              result.candidates[0].content?.parts?.[0]?.text
+            ) {
+              const aiText = result.candidates[0].content.parts[0].text;
+              // Add AI response to history
+              chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+              return aiText;
+            } else {
+              throw new Error("Invalid API response structure.");
+            }
+          } catch (error) {
+            console.error(`Gemini API attempt ${i + 1} failed:`, error);
+            if (i === retries - 1) throw error; // Throw error on last retry
+            await new Promise((resolve) =>
+              setTimeout(resolve, 1000 * Math.pow(2, i))
+            ); // Exponential backoff
+          }
+        }
+      }
+
+      // Make key functions globally accessible
+      window.openModal = openModal;
+      window.closeModal = closeModal;
+      window.showMessage = showMessage;
+      window.showTab = showTab;
+      window.showPage = showPage;
+      window.toggleMenu = toggleMenu;
+      window.convertCurrency = convertCurrency;
+      window.swapCurrencies = swapCurrencies;
+      window.registerNewUser = registerNewUser;
+      window.sendChatMessage = sendChatMessage;
+    </script>
+  </body>
+</html>
